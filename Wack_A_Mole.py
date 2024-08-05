@@ -18,9 +18,16 @@ WINDOW_Y = 100
 GAMEBOARD_SIZE = 5
 GRIDBUTTON_SIZE = 70
 
+MIN_DURATION = 15
+MAX_DURATION = 60
+
+MIN_GRID_SIZE = 5
+MAX_GRID_SIZE = 20
+
+global score
+
 #Create the WackAMole Game class, inherit from QWidget to allow window display
 class WackAMole(QWidget):
-
     #This function initialises the window class
     def __init__(self):
         super().__init__()
@@ -28,18 +35,27 @@ class WackAMole(QWidget):
         self.setGeometry(WINDOW_X,WINDOW_Y,WINDOW_WIDTH,WINDOW_HIGHT)
         self.init_ui()
 
+        #start a the tick timer
+        self.timer_display = gameDuration
+        timer = QTimer(self)
+        timer.timeout.connect(self.on_tick)
+        timer.start(1000) #1000 ms = 1 s
+
     #This function initalises the UI
     def init_ui(self):
         self.display_button_grid()
-        self.score_label = QLabel('Score: 0', self)
+        self.score_label = QLabel(f"Score: {score}", self)
         self.score_label.setFont(QFont('Arial', 12))
+        self.timer_label = QLabel(f"Time: {gameDuration}", self)
+        self.timer_label.setGeometry(0,30,100,16)
+        self.timer_label.setFont(QFont('Arial', 10))
         self.show()
 
     #This function displays the grid of buttons
     def display_button_grid(self):
         #create the layout object and grid list of buttons
         self.layout = QGridLayout()
-        self.button_grid = [QPushButton(f"{n}") for n in range(GAMEBOARD_SIZE*GAMEBOARD_SIZE)]
+        self.button_grid = [QPushButton(f"{"mole"}") for n in range(GAMEBOARD_SIZE*GAMEBOARD_SIZE)]
         #set the button size
         [b.setFixedSize(GRIDBUTTON_SIZE,GRIDBUTTON_SIZE) for b in self.button_grid]
         #add the buttons to the grid layout
@@ -52,16 +68,44 @@ class WackAMole(QWidget):
 
     #This function runs when a button on the grid is clicked
     def grid_button_clicked(self):
+        global score
         button = self.sender()
-        #print the index of the button to the console
+        #print the index of the button to the console for debugging 
         print(self.button_grid.index(button))
+        #check if the button is a mole, and react accordingly
+        if button.text() == "mole":
+            score += 1
+            self.score_label.setText(f"Score: {score}")
+            button.setText("")
+
+
+    #This function runs on every game tick mesured by the timer object
+    def on_tick(self):
+        #decrement and update the timer display
+        self.timer_display -= 1
+        self.timer_label.setText(f"Time: {self.timer_display}")
+        #stop the game if timer is 0
+        if self.timer_display == 0:
+            timer.stop()
+            QMessageBox.question(self, 'Wack a Mole', "Times Up!" , QMessageBox.Ok, QMessageBox.Ok)
+
+        
 
 
 #Main Program
 if __name__ == "__main__":
     #Create the QApplication
     app = QApplication(sys.argv)
-    #Create the game object
+
+    #Ask the user for a game duration and grid size
+    gameDuration, ok = QInputDialog.getInt(QWidget(),'Input Dialog', f"Enter a game length ({MIN_DURATION} to {MAX_DURATION}):", min=MIN_DURATION, max=MAX_DURATION)
+    
+    GAMEBOARD_SIZE, ok = QInputDialog.getInt(QWidget(),'Input Dialog', f"Enter a game grid size ({MIN_GRID_SIZE} to {MAX_GRID_SIZE}):", min=MIN_GRID_SIZE, max=MAX_GRID_SIZE)
+    
+    #Create a  timer and game object
+    score = 0
+    timer = QTimer()
     game = WackAMole()
+
     #run the application
     sys.exit(app.exec_())
