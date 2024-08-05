@@ -8,6 +8,7 @@ import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import * 
 from PyQt5.QtGui import * 
+import random as rand
 
 #Declare constants
 WINDOW_WIDTH = 700
@@ -24,6 +25,8 @@ MAX_DURATION = 60
 MIN_GRID_SIZE = 5
 MAX_GRID_SIZE = 20
 
+MOLE_COUNT = 6
+
 global score
 
 #Create the WackAMole Game class, inherit from QWidget to allow window display
@@ -34,7 +37,8 @@ class WackAMole(QWidget):
         self.setWindowTitle("Wack A Mole")
         self.setGeometry(WINDOW_X,WINDOW_Y,WINDOW_WIDTH,WINDOW_HIGHT)
         self.init_ui()
-
+        self.game_state = 1
+        
         #start a the tick timer
         self.timer_display = gameDuration
         timer = QTimer(self)
@@ -55,7 +59,7 @@ class WackAMole(QWidget):
     def display_button_grid(self):
         #create the layout object and grid list of buttons
         self.layout = QGridLayout()
-        self.button_grid = [QPushButton(f"{"mole"}") for n in range(GAMEBOARD_SIZE*GAMEBOARD_SIZE)]
+        self.button_grid = [QPushButton(f"{""}") for n in range(GAMEBOARD_SIZE*GAMEBOARD_SIZE)]
         #set the button size
         [b.setFixedSize(GRIDBUTTON_SIZE,GRIDBUTTON_SIZE) for b in self.button_grid]
         #add the buttons to the grid layout
@@ -66,30 +70,40 @@ class WackAMole(QWidget):
         #set the layout
         self.setLayout(self.layout)
 
+        #setup moles randomly in the grid
+        for _ in range(MOLE_COUNT):
+            self.button_grid[rand.randint(0,(GAMEBOARD_SIZE*GAMEBOARD_SIZE) - 1)].setText("mole")
+
     #This function runs when a button on the grid is clicked
     def grid_button_clicked(self):
-        global score
-        button = self.sender()
-        #print the index of the button to the console for debugging 
-        print(self.button_grid.index(button))
-        #check if the button is a mole, and react accordingly
-        if button.text() == "mole":
-            score += 1
-            self.score_label.setText(f"Score: {score}")
-            button.setText("")
+        if self.game_state == 1:
+            global score
+            button = self.sender()
+            #print the index of the button to the console for debugging 
+            print(self.button_grid.index(button))
+            #check if the button is a mole, and react accordingly
+            if button.text() == "mole":
+                score += 1
+                self.score_label.setText(f"Score: {score}")
+                button.setText("")
+                #move the mole to a new square
+                new_location = rand.randint(0,(GAMEBOARD_SIZE*GAMEBOARD_SIZE) - 1)
+                self.button_grid[new_location].setText("mole")
 
 
     #This function runs on every game tick mesured by the timer object
     def on_tick(self):
-        #decrement and update the timer display
-        self.timer_display -= 1
-        self.timer_label.setText(f"Time: {self.timer_display}")
-        #stop the game if timer is 0
-        if self.timer_display == 0:
-            timer.stop()
-            QMessageBox.question(self, 'Wack a Mole', "Times Up!" , QMessageBox.Ok, QMessageBox.Ok)
+        if self.game_state == 1:
+            #decrement and update the timer display
+            self.timer_display -= 1
+            self.timer_label.setText(f"Time: {self.timer_display}")
+            #stop the game if timer is 0
+            if self.timer_display == 0:
+                global score
+                timer.stop()
+                QMessageBox.question(self, 'Wack a Mole', f"Times Up! \n Final Score : {score}" , QMessageBox.Ok, QMessageBox.Ok)
+                self.game_state = 0
 
-        
 
 
 #Main Program
