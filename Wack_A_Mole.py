@@ -31,12 +31,15 @@ global score
 
 #Create the WackAMole Game class, inherit from QWidget to allow window display
 class WackAMole(QWidget):
+
     #This function initialises the window class
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Wack A Mole")
         self.setGeometry(WINDOW_X,WINDOW_Y,WINDOW_WIDTH,WINDOW_HIGHT)
         self.init_ui()
+
+        #the state of the game, 1 = playing, 0 = ended
         self.game_state = 1
         
         #start a the tick timer
@@ -103,7 +106,17 @@ class WackAMole(QWidget):
                 timer.stop()
                 QMessageBox.question(self, 'Wack a Mole', f"Times Up! \n Final Score : {score}" , QMessageBox.Ok, QMessageBox.Ok)
                 self.game_state = 0
+                self.save_score_to_file()
 
+    #This function saves the users current score to a file (append)
+    def save_score_to_file(self):
+        #open a file for saving scores and append the score
+        f = open("WackAMoleScores.txt", "a")
+        score_infomation = f"sc:{score}, gs:{GAMEBOARD_SIZE}, tmr:{gameDuration}"
+        f.write(f"\n{score_infomation}")
+        f.close()
+        print("Saved Score")
+        
 
 
 #Main Program
@@ -113,9 +126,10 @@ if __name__ == "__main__":
 
     #Ask the user for a game duration and grid size
     gameDuration, ok = QInputDialog.getInt(QWidget(),'Input Dialog', f"Enter a game length ({MIN_DURATION} to {MAX_DURATION}):", min=MIN_DURATION, max=MAX_DURATION)
-    
+    if not ok: gameDuration = MIN_DURATION #ensure values is never null 
     GAMEBOARD_SIZE, ok = QInputDialog.getInt(QWidget(),'Input Dialog', f"Enter a game grid size ({MIN_GRID_SIZE} to {MAX_GRID_SIZE}):", min=MIN_GRID_SIZE, max=MAX_GRID_SIZE)
-    
+    if not ok: GAMEBOARD_SIZE = MIN_GRID_SIZE #ensure value is never null 
+
     #Create a  timer and game object
     score = 0
     timer = QTimer()
