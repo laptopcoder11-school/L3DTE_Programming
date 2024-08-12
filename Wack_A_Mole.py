@@ -54,7 +54,7 @@ class WackAMole(QWidget):
         self.score_label = QLabel(f"Score: {score}", self)
         self.score_label.setFont(QFont('Arial', 12))
         self.timer_label = QLabel(f"Time: {gameDuration}", self)
-        self.timer_label.setGeometry(0,30,100,16)
+        self.timer_label.setGeometry(0,30,120,16)
         self.timer_label.setFont(QFont('Arial', 10))
         self.show()
 
@@ -69,13 +69,21 @@ class WackAMole(QWidget):
         [self.layout.addWidget(self.button_grid[(x*GAMEBOARD_SIZE)+y],x,y) for x in range(GAMEBOARD_SIZE) for y in range(GAMEBOARD_SIZE)]
         #attach a function to the buttons
         [b.clicked.connect(self.grid_button_clicked) for b in self.button_grid]
+        #attach an image to the buttons
+        [b.setStyleSheet("background-image : url(hole.png);") for b in self.button_grid]
+        #remove the text by setting font size to really large (0 doesnt work)
+        [b.setFont(QFont('Arial', 999)) for b in self.button_grid]
 
         #set the layout
         self.setLayout(self.layout)
 
         #setup moles randomly in the grid
         for _ in range(MOLE_COUNT):
-            self.button_grid[rand.randint(0,(GAMEBOARD_SIZE*GAMEBOARD_SIZE) - 1)].setText("mole")
+            b = self.button_grid[rand.randint(0,(GAMEBOARD_SIZE*GAMEBOARD_SIZE) - 1)]
+            b.setText("mole")
+            #set the image
+            b.setStyleSheet("background-image : url(moleimage.png);")
+        
 
     #This function runs when a button on the grid is clicked
     def grid_button_clicked(self):
@@ -88,11 +96,20 @@ class WackAMole(QWidget):
             if button.text() == "mole":
                 score += 1
                 self.score_label.setText(f"Score: {score}")
-                button.setText("")
-                #move the mole to a new square
-                new_location = rand.randint(0,(GAMEBOARD_SIZE*GAMEBOARD_SIZE) - 1)
+                self.move_mole_to_new_location(button)
+                
+    #This function moves the mole to a new randomlocation on the grid
+    def move_mole_to_new_location(self, mole):
+                new_location = self.button_grid.index(mole)
+                #select a random cell that is not a mole
+                while self.button_grid[new_location].text() == "mole":
+                    new_location = rand.randint(0,(GAMEBOARD_SIZE*GAMEBOARD_SIZE) - 1)
+                #move the mole to the new location
                 self.button_grid[new_location].setText("mole")
-
+                mole.setText("")
+                #update the button images
+                self.button_grid[new_location].setStyleSheet("background-image : url(moleimage.png);")
+                mole.setStyleSheet("background-image : url(hole.png);")
 
     #This function runs on every game tick mesured by the timer object
     def on_tick(self):
@@ -100,6 +117,8 @@ class WackAMole(QWidget):
             #decrement and update the timer display
             self.timer_display -= 1
             self.timer_label.setText(f"Time: {self.timer_display}")
+            #move the moles automatically
+            [self.move_mole_to_new_location(m) for m in self.button_grid]
             #stop the game if timer is 0
             if self.timer_display == 0:
                 global score
@@ -126,7 +145,7 @@ if __name__ == "__main__":
 
     #Ask the user for a game duration and grid size
     gameDuration, ok = QInputDialog.getInt(QWidget(),'Input Dialog', f"Enter a game length ({MIN_DURATION} to {MAX_DURATION}):", min=MIN_DURATION, max=MAX_DURATION)
-    if not ok: gameDuration = MIN_DURATION #ensure values is never null 
+    if not ok: gameDuration = MIN_DURATION #ensure value is never null 
     GAMEBOARD_SIZE, ok = QInputDialog.getInt(QWidget(),'Input Dialog', f"Enter a game grid size ({MIN_GRID_SIZE} to {MAX_GRID_SIZE}):", min=MIN_GRID_SIZE, max=MAX_GRID_SIZE)
     if not ok: GAMEBOARD_SIZE = MIN_GRID_SIZE #ensure value is never null 
 
