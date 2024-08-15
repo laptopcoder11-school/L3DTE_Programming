@@ -5,12 +5,17 @@
 
 # Imports
 import sys
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import * 
-from PyQt5.QtGui import * 
+from PyQt5.QtWidgets import QApplication, QInputDialog, QLabel, QWidget, QGridLayout, QPushButton, QMessageBox
+from PyQt5.QtCore import QTimer 
+from PyQt5.QtGui import QFont
 import random as rand
+from os import path, chdir
+
+#update the working directory to the location of the .py file to ensure images always load
+chdir(path.dirname(__file__))
 
 #Declare constants
+FILE_PATH = "./assets/"
 WINDOW_WIDTH = 700
 WINDOW_HIGHT = 800
 WINDOW_X = 600
@@ -54,7 +59,7 @@ class WackAMole(QWidget):
         self.score_label = QLabel(f"Score: {score}", self)
         self.score_label.setFont(QFont('Arial', 12))
         self.timer_label = QLabel(f"Time: {gameDuration}", self)
-        self.timer_label.setGeometry(0,30,120,16)
+        self.timer_label.setGeometry(0,30,150,16)
         self.timer_label.setFont(QFont('Arial', 10))
         self.show()
 
@@ -70,7 +75,7 @@ class WackAMole(QWidget):
         #attach a function to the buttons
         [b.clicked.connect(self.grid_button_clicked) for b in self.button_grid]
         #attach an image to the buttons
-        [b.setStyleSheet("background-image : url(hole.png);") for b in self.button_grid]
+        [b.setStyleSheet(f"background-image : url({FILE_PATH}hole.png);") for b in self.button_grid]
         #remove the text by setting font size to really large (0 doesnt work)
         [b.setFont(QFont('Arial', 999)) for b in self.button_grid]
 
@@ -82,7 +87,7 @@ class WackAMole(QWidget):
             b = self.button_grid[rand.randint(0,(GAMEBOARD_SIZE*GAMEBOARD_SIZE) - 1)]
             b.setText("mole")
             #set the image
-            b.setStyleSheet("background-image : url(moleimage.png);")
+            b.setStyleSheet(f"background-image : url({FILE_PATH}moleimage.png);")
         
 
     #This function runs when a button on the grid is clicked
@@ -108,8 +113,8 @@ class WackAMole(QWidget):
                 self.button_grid[new_location].setText("mole")
                 mole.setText("")
                 #update the button images
-                self.button_grid[new_location].setStyleSheet("background-image : url(moleimage.png);")
-                mole.setStyleSheet("background-image : url(hole.png);")
+                self.button_grid[new_location].setStyleSheet(f"background-image : url({FILE_PATH}moleimage.png);")
+                mole.setStyleSheet(f"background-image : url({FILE_PATH}hole.png);")
 
     #This function runs on every game tick mesured by the timer object
     def on_tick(self):
