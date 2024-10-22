@@ -8,7 +8,7 @@ import sys
 from PyQt5.QtWidgets import QApplication, QInputDialog, QLabel, QWidget, QGridLayout, QPushButton, QMessageBox
 from PyQt5.QtCore import QTimer 
 from PyQt5.QtGui import QFont
-import random as rand
+from random import randint
 from os import path, chdir
 
 #update the working directory to the location of the .py file to ensure images always load
@@ -48,7 +48,7 @@ class WackAMole(QWidget):
         self.game_state = 1
         
         #start a the tick timer
-        self.timer_display = gameDuration
+        self.timer_display = game_duration
         timer = QTimer(self)
         timer.timeout.connect(self.on_tick)
         timer.start(1000) #1000 ms = 1 s
@@ -58,7 +58,7 @@ class WackAMole(QWidget):
         self.display_button_grid()
         self.score_label = QLabel(f"Score: {score}", self)
         self.score_label.setFont(QFont('Arial', 12))
-        self.timer_label = QLabel(f"Time: {gameDuration}", self)
+        self.timer_label = QLabel(f"Time: {game_duration}", self)
         self.timer_label.setGeometry(0,30,150,16)
         self.timer_label.setFont(QFont('Arial', 10))
         self.show()
@@ -79,14 +79,12 @@ class WackAMole(QWidget):
         #remove the text by setting font size to really large (0 doesnt work)
         [b.setFont(QFont('Arial', 999)) for b in self.button_grid]
 
-        #set the layout
         self.setLayout(self.layout)
 
         #setup moles randomly in the grid
         for _ in range(MOLE_COUNT):
-            b = self.button_grid[rand.randint(0,(GAMEBOARD_SIZE*GAMEBOARD_SIZE) - 1)]
+            b = self.button_grid[randint(0,(GAMEBOARD_SIZE*GAMEBOARD_SIZE) - 1)]
             b.setText("mole")
-            #set the image
             b.setStyleSheet(f"background-image : url({FILE_PATH}moleimage.png);")
         
 
@@ -96,7 +94,7 @@ class WackAMole(QWidget):
             global score
             button = self.sender()
             #print the index of the button to the console for debugging 
-            print(self.button_grid.index(button))
+            #print(self.button_grid.index(button))
             #check if the button is a mole, and react accordingly
             if button.text() == "mole":
                 score += 1
@@ -108,7 +106,7 @@ class WackAMole(QWidget):
                 new_location = self.button_grid.index(mole)
                 #select a random cell that is not a mole
                 while self.button_grid[new_location].text() == "mole":
-                    new_location = rand.randint(0,(GAMEBOARD_SIZE*GAMEBOARD_SIZE) - 1)
+                    new_location = randint(0,(GAMEBOARD_SIZE*GAMEBOARD_SIZE) - 1)
                 #move the mole to the new location
                 self.button_grid[new_location].setText("mole")
                 mole.setText("")
@@ -136,7 +134,7 @@ class WackAMole(QWidget):
     def save_score_to_file(self):
         #open a file for saving scores and append the score
         f = open("WackAMoleScores.txt", "a")
-        score_infomation = f"sc:{score}, gs:{GAMEBOARD_SIZE}, tmr:{gameDuration}"
+        score_infomation = f"sc:{score}, gs:{GAMEBOARD_SIZE}, tmr:{game_duration}"
         f.write(f"\n{score_infomation}")
         f.close()
         print("Saved Score")
@@ -149,8 +147,8 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     #Ask the user for a game duration and grid size
-    gameDuration, ok = QInputDialog.getInt(QWidget(),'Input Dialog', f"Enter a game length ({MIN_DURATION} to {MAX_DURATION}):", min=MIN_DURATION, max=MAX_DURATION)
-    if not ok: gameDuration = MIN_DURATION #ensure value is never null 
+    game_duration, ok = QInputDialog.getInt(QWidget(),'Input Dialog', f"Enter a game length ({MIN_DURATION} to {MAX_DURATION}):", min=MIN_DURATION, max=MAX_DURATION)
+    if not ok: game_duration = MIN_DURATION #ensure value is never null 
     GAMEBOARD_SIZE, ok = QInputDialog.getInt(QWidget(),'Input Dialog', f"Enter a game grid size ({MIN_GRID_SIZE} to {MAX_GRID_SIZE}):", min=MIN_GRID_SIZE, max=MAX_GRID_SIZE)
     if not ok: GAMEBOARD_SIZE = MIN_GRID_SIZE #ensure value is never null 
 
